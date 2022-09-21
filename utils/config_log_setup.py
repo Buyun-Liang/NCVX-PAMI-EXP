@@ -1,5 +1,6 @@
 import platform, os, json, torch, random
 import numpy as np
+import pandas as pd
 
 # ==== functions related to save log ====
 def makedir(dir):
@@ -23,6 +24,21 @@ def save_exp_info(save_dir, config):
 def save_dict_to_json(dict, save_dir):
     with open(save_dir, "w") as outfile:
         json.dump(dict, outfile, indent=4)
+
+def save_dict_to_csv(
+    summary_dict,
+    save_name,
+    transpose=False
+):
+    """
+        Save a dict into json file.
+    """
+    # csv format
+    if not transpose:
+        pd_data = pd.DataFrame.from_dict(summary_dict)
+    else:
+        pd_data = pd.DataFrame.from_dict(summary_dict).T
+    pd_data.to_csv(save_name, index=False)
 
 # ==== functions related to config setup ====
 def clear_terminal_output():

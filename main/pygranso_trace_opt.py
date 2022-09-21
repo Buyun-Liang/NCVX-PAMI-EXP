@@ -11,12 +11,12 @@
 
 
 import argparse,os, sys, torch, time
-import pygranso
+from pygranso.pygranso import pygranso
 sys.path.append("/home/buyun/Documents/GitHub/NCVX-PAMI-EXP")
 sys.path.append("/home/jusun/liang664/NCVX-PAMI-EXP")
 
 from utils.config_log_setup import clear_terminal_output, makedir, \
-    create_log_info, save_exp_info, set_default_device
+    create_log_info, save_exp_info, set_default_device, save_dict_to_csv
 from utils.general import load_json, print_and_log
 from pygranso_functions.trace_optimization import user_fn, opts_init
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         U_cur = solution_matrices[data_idx]
         for restart_idx in range(restart_num):
             msg = " [%d/%d] restarts. [%d/%d] data matrices. folding type: {} ".format(restart_idx,restart_num,data_idx,data_matrices_num,folding_type)
-            print_and_log(msg, log_file, mode="w")
+            print_and_log(msg, log_file)
             try:
                 # call pygranso
                 start = time.time()
@@ -154,7 +154,7 @@ if __name__ == "__main__":
                 pygranso_result_summary["term_code"].append(soln.termination_code)
                 pygranso_result_summary["iter"].append(soln.iters)
             except Exception as e:
-                print_and_log("pygranso failed", log_file, mode="w")
+                print_and_log("pygranso failed", log_file)
                 pygranso_result_summary["data_idx"].append(data_idx)
                 pygranso_result_summary["restart_idx"].append(restart_idx)
 
@@ -169,10 +169,10 @@ if __name__ == "__main__":
 
 
     save_dict_to_csv(
-            pygranso_result_csv_dir, granso_continue_csv_dir
+            pygranso_result_summary, pygranso_result_csv_dir
         )
 
-print("Done")
+    print_and_log("<====== Experiment Done <=======", log_file)
 
 
 

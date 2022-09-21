@@ -1,7 +1,8 @@
 import torch
 from pygranso.pygransoStruct import pygransoStruct
 
-def user_fn(X_struct,A,d,device,maxfolding,square_flag):
+def user_fn(X_struct,A,d,device,folding_type):
+    assert folding_type in [None, "l2"], "unidentified folding type for PyGranso."
     V = X_struct.V
     # objective function
     f = -torch.trace(V.T@A@V)
@@ -10,19 +11,17 @@ def user_fn(X_struct,A,d,device,maxfolding,square_flag):
     # equality constraint
     ce = pygransoStruct()
     constr_vec = (V.T@V - torch.eye(d).to(device=device, dtype=torch.double)).reshape(d**2,1)
-    if maxfolding == 'l1':
-        ce.c1 = torch.sum(torch.abs(constr_vec))
-    elif maxfolding == 'l2':
+    # if folding_type == 'l1':
+    #     ce.c1 = torch.sum(torch.abs(constr_vec))
+    # elif folding_type == 'l2':
+    #     ce.c1 = torch.sum(constr_vec**2)**0.5
+    # elif folding_type == 'linf':
+    #     ce.c1 = torch.amax(torch.abs(constr_vec))
+    if folding_type == 'l2':
         ce.c1 = torch.sum(constr_vec**2)**0.5
-    elif maxfolding == 'linf':
-        ce.c1 = torch.amax(torch.abs(constr_vec))
-    elif maxfolding == 'unfolding':
+    else: # unfolded
         ce.c1 = V.T@V - torch.eye(d).to(device=device, dtype=torch.double)
-    else:
-        print("Please specficy you maxfolding type!")
-        exit()
-    if square_flag:
-        ce.c1 = ce.c1**2
+        
     return [f,ci,ce]
 
 def opts_init(device,pygranso_config,final_obj_list,data_idx,n,d):
