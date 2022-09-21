@@ -97,6 +97,20 @@ if __name__ == "__main__":
         check_point_dir, "result_summary.csv"
     )
 
+    pygranso_result_summary = {
+        "data_idx": [],
+        "restart_idx": [],
+        "time": [],
+        "mean_error": [],
+        "F": [],
+        "tv": [],
+        "MF": [],
+        "MF_tv": [],
+        "term_code": [],
+        "iter": []
+    }
+
+
     # === Setup Optimization Problem ===
     data_matrices = []
     solution_matrices = []
@@ -117,6 +131,7 @@ if __name__ == "__main__":
     for data_idx in range(data_matrices_num):
         comb_fn = lambda X_struct : user_fn(X_struct,A,d,device,folding_type)
         opts = opts_init(device,pygranso_config,final_obj_list,data_idx,n,d)
+        U_cur = solution_matrices[data_idx]
         for restart_idx in range(restart_num):
             msg = " [%d/%d] restarts. [%d/%d] data matrices. folding type: {} ".format(restart_idx,restart_num,data_idx,data_matrices_num,folding_type)
             print_and_log(msg, log_file, mode="w")
@@ -125,13 +140,42 @@ if __name__ == "__main__":
                 start = time.time()
                 soln = pygranso(var_spec = var_in,combined_fn = comb_fn,user_opts = opts)
                 end = time.time()
-                result_dict = utils.store_result(soln,end,start,n,d,i,result_dict,U,rng_seed,maxfolding)
+                pygranso_result_summary["data_idx"].append(data_idx)
+                pygranso_result_summary["restart_idx"].append(restart_idx)
+                pygranso_result_summary["time"].append(end-start)
+
+                V = torch.reshape(soln.final.x,(n,d)) # reshape final solution
+                E = torch.linalg.norm(V-U_cur)/torch.linalg.norm(U_cur) # calculate mean error E
+                pygranso_result_summary["mean_error"].append(E)
+                pygranso_result_summary["F"].append(soln.final.f)
+                pygranso_result_summary["tv"].append(soln.final.tv)
+                pygranso_result_summary["MF"].append(soln.most_feasible.f)
+                pygranso_result_summary["MF_tv"].append(soln.most_feasible.tv)
+                pygranso_result_summary["term_code"].append(soln.termination_code)
+                pygranso_result_summary["iter"].append(soln.iters)
             except Exception as e:
                 print_and_log("pygranso failed", log_file, mode="w")
+                pygranso_result_summary["data_idx"].append(data_idx)
+                pygranso_result_summary["restart_idx"].append(restart_idx)
 
+                pygranso_result_summary["time"].append(-1)
+                pygranso_result_summary["mean_error"].append(-1)
+                pygranso_result_summary["F"].append(-1)
+                pygranso_result_summary["tv"].append(-1)
+                pygranso_result_summary["MF"].append(-1)
+                pygranso_result_summary["MF_tv"].append(-1)
+                pygranso_result_summary["term_code"].append(-1)
+                pygranso_result_summary["iter"].append(-1)
+
+
+    save_dict_to_csv(
+            pygranso_result_csv_dir, granso_continue_csv_dir
+        )
 
 print("Done")
-pass
+
+
+
 
 # n = 10 # V: n*d
 # d = 5 # copnst: d*d
