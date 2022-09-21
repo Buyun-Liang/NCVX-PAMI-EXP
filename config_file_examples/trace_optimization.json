@@ -1,0 +1,14 @@
+{
+    "optimization_problem_settings":{
+        "n": 10,
+        "d": 5
+    },
+    "log_folder":{
+        "save_root": "Trace-Optimization-Example"
+    },
+    "pygranso_options":{
+        "folding_type": "l2",
+        "restart_num": 20,
+        "maxclocktime": 30
+    }
+}

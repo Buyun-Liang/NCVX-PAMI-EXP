@@ -10,9 +10,13 @@
 # from matplotlib import pyplot as plt 
 
 
-from utils.config_log_setup import clear_terminal_output
+import argparse,os, sys, torch
+sys.path.append("/home/buyun/Documents/GitHub/NCVX-PAMI-EXP")
+sys.path.append("/home/jusun/liang664/NCVX-PAMI-EXP")
+
+from utils.config_log_setup import clear_terminal_output, makedir
 from utils.general import load_json
-import argparse,os
+
 
 
 # #generate a list of markers and another of colors 
@@ -35,6 +39,22 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     cfg = load_json(args.config)  # Load Experiment Configuration file
+    
+    pygranso_dtype = torch.double # Always use double precision in PyGRANSO
+
+    # Experiment Root
+    save_root = "log_folder" #os.path.join("..", "log_folder")
+    root_name = cfg["log_folder"]["save_root"]
+    save_root = os.path.join(save_root, root_name)
+    makedir(save_root)
+
+    # Experiment ID
+    n = cfg["optimization_problem_settings"]["n"] # opt var V: n*d
+    d = cfg["optimization_problem_settings"]["d"] # constraint: d*d
+    folding_type = cfg["pygranso_options"]["folding_type"]
+    restart_num = cfg["pygranso_options"]["restart_num"]
+    maxclocktime = cfg["pygranso_options"]["maxclocktime"]
+
 
 
 n = 10 # V: n*d
