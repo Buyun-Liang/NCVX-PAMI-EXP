@@ -2,7 +2,8 @@
     "seed": 42,
     "optimization_problem_settings":{
         "n": 10,
-        "d": 5
+        "d": 5,
+        "data_matrices_num": 8
     },
     "log_folder":{
         "save_root": "Trace-Optimization-Example"
@@ -10,6 +11,10 @@
     "pygranso_options":{
         "folding_type": "l2",
         "restart_num": 20,
-        "maxclocktime": 30
+        "maxclocktime": 30,
+        "opt_tol": 1e-8,
+        "maxit": 1000,
+        "threshold": 0.99,
+        "mu0": 1
     }
 }
