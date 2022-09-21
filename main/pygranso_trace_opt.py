@@ -133,7 +133,7 @@ if __name__ == "__main__":
         opts = opts_init(device,pygranso_config,final_obj_list,data_idx,n,d)
         U_cur = solution_matrices[data_idx]
         for restart_idx in range(restart_num):
-            msg = " [%d/%d] restarts. [%d/%d] data matrices. folding type: {} ".format(restart_idx,restart_num,data_idx,data_matrices_num,folding_type)
+            msg = " [%d/%d] restarts. [%d/%d] data matrices. folding type: %s."%(restart_idx+1,restart_num,data_idx+1,data_matrices_num,folding_type)
             print_and_log(msg, log_file)
             try:
                 # call pygranso
@@ -145,7 +145,7 @@ if __name__ == "__main__":
                 pygranso_result_summary["time"].append(end-start)
 
                 V = torch.reshape(soln.final.x,(n,d)) # reshape final solution
-                E = torch.linalg.norm(V-U_cur)/torch.linalg.norm(U_cur) # calculate mean error E
+                E = (torch.linalg.norm(V-U_cur)/torch.linalg.norm(U_cur)).item() # calculate mean error E
                 pygranso_result_summary["mean_error"].append(E)
                 pygranso_result_summary["F"].append(soln.final.f)
                 pygranso_result_summary["tv"].append(soln.final.tv)
@@ -173,96 +173,64 @@ if __name__ == "__main__":
         )
 
     print_and_log("<====== Experiment Done <=======", log_file)
+    print_and_log("TODO: make plot!", log_file)
 
 
 
 
-# n = 10 # V: n*d
-# d = 5 # copnst: d*d
-
-# folding_list = ['l2','l1','linf']
-# folding_list = ['l2']
-# folding_list = ['l2','l1','linf','unfolding']
-# folding_list = ['unfolding']
-
-# K = 1000 # K number of starting points. random generated initial guesses
-# N = 8 # number of different data matrix (with the same size)
-# K = 2
-# N = 3
 
 
-# opt_tol = 1e-16
-# maxit = 50000
-# maxclocktime = 30
-# QPsolver = "gurobi"
-# QPsolver = "osqp"
-# threshold = 0.99
+# ###################################################
+# start_all_seeds = time.time()
+# # result_dict = utils.result_dict_init(N,folding_list) # initialize result dict
+# for rng_seed in range(N):
+#     # [A, U, ana_sol] = utils.data_init(rng_seed, n, d, device)
+#     folding_idx = 0 # index for plots
+#     for maxfolding in folding_list:
+#         print('\n\n\n'+ maxfolding + '  start!')
+#         folding_idx+=1
+#         comb_fn = lambda X_struct : utils.user_fn(X_struct,A,d,device,maxfolding,square_flag)
+#         start_loop = time.time()
+#         for i in range(K):
+#             print("the {}th test out of K = {} initial guesses.\n rng seed {} out of N = {}. \n folding type: {} ".format(i+1,K, rng_seed,N,maxfolding))
+#             try:
+#                 # call pygranso
+#                 start = time.time()
+#                 var_in = {"V": [n,d]}
+#                 opts = utils.opts_init(device,maxit,opt_tol,maxclocktime,QPsolver,mu0,ana_sol,threshold,n,d)
+#                 soln = pygranso(var_spec = var_in,combined_fn = comb_fn,user_opts = opts)
+#                 end = time.time()
+#                 result_dict = utils.store_result(soln,end,start,n,d,i,result_dict,U,rng_seed,maxfolding)
+#             except Exception as e:
+#                 print('skip pygranso')
+#         end_loop = time.time()
+#         print("K Loop Wall Time for {} folding: {}s".format(maxfolding,end_loop - start_loop))
+#         utils.sort_result(result_dict,rng_seed,maxfolding)
+#         arr_len = utils.print_result(result_dict,K,rng_seed,maxfolding)
+#         # plot
+#         dict_key = str(rng_seed) + maxfolding
+#         plt.plot(np.arange(arr_len),result_dict[dict_key]['F'],color = colors[folding_idx], marker = markers[folding_idx], linestyle = '-',label=maxfolding)
 
-# square_flag = True
-# square_flag = False
-
-# mu0 = 0.1
-# device = torch.device('cuda')
-
-
-###############################################
-
-# [my_path, log_name, date_time, name_str] = utils.get_name(square_flag,folding_list,n,d,K,maxclocktime,N,K)
-
-# if not debug_mode:
-#     sys.stdout = open(os.path.join(my_path, log_name), 'w')
-
-###################################################
-start_all_seeds = time.time()
-# result_dict = utils.result_dict_init(N,folding_list) # initialize result dict
-for rng_seed in range(N):
-    # [A, U, ana_sol] = utils.data_init(rng_seed, n, d, device)
-    folding_idx = 0 # index for plots
-    for maxfolding in folding_list:
-        print('\n\n\n'+ maxfolding + '  start!')
-        folding_idx+=1
-        comb_fn = lambda X_struct : utils.user_fn(X_struct,A,d,device,maxfolding,square_flag)
-        start_loop = time.time()
-        for i in range(K):
-            print("the {}th test out of K = {} initial guesses.\n rng seed {} out of N = {}. \n folding type: {} ".format(i+1,K, rng_seed,N,maxfolding))
-            try:
-                # call pygranso
-                start = time.time()
-                var_in = {"V": [n,d]}
-                opts = utils.opts_init(device,maxit,opt_tol,maxclocktime,QPsolver,mu0,ana_sol,threshold,n,d)
-                soln = pygranso(var_spec = var_in,combined_fn = comb_fn,user_opts = opts)
-                end = time.time()
-                result_dict = utils.store_result(soln,end,start,n,d,i,result_dict,U,rng_seed,maxfolding)
-            except Exception as e:
-                print('skip pygranso')
-        end_loop = time.time()
-        print("K Loop Wall Time for {} folding: {}s".format(maxfolding,end_loop - start_loop))
-        utils.sort_result(result_dict,rng_seed,maxfolding)
-        arr_len = utils.print_result(result_dict,K,rng_seed,maxfolding)
-        # plot
-        dict_key = str(rng_seed) + maxfolding
-        plt.plot(np.arange(arr_len),result_dict[dict_key]['F'],color = colors[folding_idx], marker = markers[folding_idx], linestyle = '-',label=maxfolding)
-
-    plt.plot(np.arange(arr_len),np.array(arr_len*[ana_sol]),color = colors[folding_idx+1], linestyle = '-',label='analytical sol')
-    plt.legend()
-    plt.title(name_str)
-    plt.xlabel('sorted sample index')
-    plt.ylabel('obj val')
+#     plt.plot(np.arange(arr_len),np.array(arr_len*[ana_sol]),color = colors[folding_idx+1], linestyle = '-',label='analytical sol')
+#     plt.legend()
+#     plt.title(name_str)
+#     plt.xlabel('sorted sample index')
+#     plt.ylabel('obj val')
     
 
-    if not debug_mode:
-        [data_name,png_title] = utils.add_path(my_path,rng_seed, date_time, name_str)
-        np.save(data_name,result_dict)
-        plt.savefig(os.path.join(my_path, png_title))
-        plt.clf()
-    else:
-        plt.show()
+#     if not debug_mode:
+#         [data_name,png_title] = utils.add_path(my_path,rng_seed, date_time, name_str)
+#         np.save(data_name,result_dict)
+#         plt.savefig(os.path.join(my_path, png_title))
+#         plt.clf()
+#     else:
+#         plt.show()
 
-end_all_seeds = time.time()
-print("N seeds Wall Time: {}s".format(end_all_seeds - start_all_seeds))
+# end_all_seeds = time.time()
+# print("N seeds Wall Time: {}s".format(end_all_seeds - start_all_seeds))
 
-if not debug_mode:
-    # end writing
-    sys.stdout.close()
+# if not debug_mode:
+#     # end writing
+#     sys.stdout.close()
 
 
