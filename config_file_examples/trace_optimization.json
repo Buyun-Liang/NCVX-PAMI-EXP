@@ -1,4 +1,5 @@
 {
+    "seed": 42,
     "optimization_problem_settings":{
         "n": 10,
         "d": 5

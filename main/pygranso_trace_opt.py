@@ -14,7 +14,8 @@ import argparse,os, sys, torch
 sys.path.append("/home/buyun/Documents/GitHub/NCVX-PAMI-EXP")
 sys.path.append("/home/jusun/liang664/NCVX-PAMI-EXP")
 
-from utils.config_log_setup import clear_terminal_output, makedir
+from utils.config_log_setup import clear_terminal_output, makedir, \
+    create_log_info, save_exp_info, set_default_device
 from utils.general import load_json
 
 
@@ -55,7 +56,22 @@ if __name__ == "__main__":
     restart_num = cfg["pygranso_options"]["restart_num"]
     maxclocktime = cfg["pygranso_options"]["maxclocktime"]
 
+    exp_name = "tr-opt-n%d-d%d-%s-restart%d-time%d" % (
+        n, d, folding_type, restart_num, maxclocktime
+    )
 
+    check_point_dir = os.path.join(
+        save_root, 
+        exp_name
+    )
+
+    cfg["checkpoint_dir"] = check_point_dir
+    makedir(check_point_dir)
+
+    # Create Experiment Log File and save settings
+    log_file = create_log_info(check_point_dir)
+    save_exp_info(check_point_dir, cfg)
+    device, _ = set_default_device(cfg)
 
 n = 10 # V: n*d
 d = 5 # copnst: d*d
