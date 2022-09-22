@@ -93,6 +93,7 @@ if __name__ == "__main__":
     save_exp_info(check_point_dir, cfg)
     
     # Create save csv dir
+    
     pygranso_result_csv_dir = os.path.join(
         check_point_dir, "result_summary.csv"
     )
@@ -123,6 +124,8 @@ if __name__ == "__main__":
 
     msg = " >> Created %d different trace optimization problems with size n=%d, d=%d."%(data_matrices_num,n,d)
     print_and_log(msg, log_file, mode="w")
+
+    print_and_log(pygranso_result_csv_dir, log_file)
 
     # main function for pygranso
     var_in = {"V": [n,d]}
