@@ -33,6 +33,7 @@ def opts_init(device,pygranso_config,final_obj_list,data_idx,n,d):
     opts.print_ascii = True
     opts.quadprog_info_msg  = False
     opts.opt_tol = pygranso_config["opt_tol"]
+    opts.viol_eq_tol = pygranso_config["viol_eq_tol"]
     opts.maxclocktime = pygranso_config["maxclocktime"]
     opts.mu0 = pygranso_config["mu0"]
     opts.fvalquit = final_obj_list[data_idx]*pygranso_config["threshold"]

@@ -102,7 +102,8 @@ if __name__ == "__main__":
         "data_idx": [],
         "restart_idx": [],
         "time": [],
-        "mean_error": [],
+        "mean_error_v1": [],
+        "mean_error_v2": [],
         "F": [],
         "tv": [],
         "MF": [],
@@ -132,12 +133,17 @@ if __name__ == "__main__":
     pygranso_config = cfg["pygranso_options"]
     
     for data_idx in range(data_matrices_num):
-        comb_fn = lambda X_struct : user_fn(X_struct,A,d,device,folding_type)
-        opts = opts_init(device,pygranso_config,final_obj_list,data_idx,n,d)
+        A_cur = data_matrices[data_idx]
+        comb_fn = lambda X_struct : user_fn(X_struct,A_cur,d,device,folding_type)
+        f_cur = final_obj_list[data_idx]
+        msg = " Analytical solution for data matrix %d is %f "%(data_idx,f_cur)
+        print_and_log(msg, log_file)
         U_cur = solution_matrices[data_idx]
+        
         for restart_idx in range(restart_num):
             msg = " [%d/%d] restarts. [%d/%d] data matrices. folding type: %s."%(restart_idx+1,restart_num,data_idx+1,data_matrices_num,folding_type)
             print_and_log(msg, log_file)
+            opts = opts_init(device,pygranso_config,final_obj_list,data_idx,n,d) # randomness is from here
             try:
                 # call pygranso
                 start = time.time()
@@ -148,8 +154,10 @@ if __name__ == "__main__":
                 pygranso_result_summary["time"].append(end-start)
 
                 V = torch.reshape(soln.final.x,(n,d)) # reshape final solution
-                E = (torch.linalg.norm(V-U_cur)/torch.linalg.norm(U_cur)).item() # calculate mean error E
-                pygranso_result_summary["mean_error"].append(E)
+                E1 = (torch.linalg.norm(V-U_cur)/torch.linalg.norm(U_cur)).item() # calculate mean error E
+                pygranso_result_summary["mean_error_v1"].append(E1)
+                E2 = abs(soln.final.f - f_cur)/abs(f_cur)
+                pygranso_result_summary["mean_error_v2"].append(E2)
                 pygranso_result_summary["F"].append(soln.final.f)
                 pygranso_result_summary["tv"].append(soln.final.tv)
                 pygranso_result_summary["MF"].append(soln.most_feasible.f)
@@ -162,7 +170,8 @@ if __name__ == "__main__":
                 pygranso_result_summary["restart_idx"].append(restart_idx)
 
                 pygranso_result_summary["time"].append(-1)
-                pygranso_result_summary["mean_error"].append(-1)
+                pygranso_result_summary["mean_error_v1"].append(-1)
+                pygranso_result_summary["mean_error_v2"].append(-1)
                 pygranso_result_summary["F"].append(-1)
                 pygranso_result_summary["tv"].append(-1)
                 pygranso_result_summary["MF"].append(-1)
@@ -171,11 +180,12 @@ if __name__ == "__main__":
                 pygranso_result_summary["iter"].append(-1)
 
 
-    save_dict_to_csv(
-            pygranso_result_summary, pygranso_result_csv_dir
-        )
+            save_dict_to_csv(
+                    pygranso_result_summary, pygranso_result_csv_dir
+                )
 
     print_and_log("<====== Experiment Done <=======", log_file)
+
     print_and_log("TODO: make plot!", log_file)
 
 
