@@ -1,8 +1,8 @@
 {
     "seed": 42,
     "optimization_problem_settings":{
-        "n": 10,
-        "d": 5,
+        "n": 40,
+        "d": 20,
         "data_matrices_num": 3
     },
     "log_folder":{
@@ -11,10 +11,10 @@
     "pygranso_options":{
         "folding_type": "l2",
         "restart_num": 5,
-        "maxclocktime": 60,
+        "maxclocktime": 240,
         "opt_tol": 1e-8,
         "viol_eq_tol": 1e-8,
-        "maxit": 1000,
+        "maxit": 5000,
         "threshold": 0.99,
         "mu0": 1
     }
